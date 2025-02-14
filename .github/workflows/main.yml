@@ -7,15 +7,15 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted]  # Replace 'your-runner-label' with the label you assigned to your self-hosted runner
+    runs-on: [self-hosted, windows]  # Adjust 'windows' or use your self-hosted runner label
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Install dependencies (Windows)
         run: |
-          # Ensure Python is installed
+          # Ensure Python is installed and display its version
           python --version
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -27,12 +27,11 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           PROJECT_DIR: "/home/${{ secrets.SERVER_USER }}/public_html"
         run: |
-          # Store SSH private key in a file
+          # Save SSH private key to a file
           echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-
-          # Transfer all files to the server
+          # Set proper permissions for the key
+          icacls private_key.pem /grant Everyone:F
+          # Transfer files to the server using SCP
           scp -i private_key.pem -r . $SERVER_USER@$SERVER_IP:$PROJECT_DIR
-
-          # Clean up the SSH private key file
-          rm -f private_key.pem
+          # Clean up by removing the private key file
+          del private_key.pem
