@@ -1,10 +1,6 @@
 from flask import Flask, request, render_template, jsonify
 from flask.wrappers import Response
 from jinja2 import Undefined
-from py.prime import makePrime
-from galton import galtonboard
-from petrol import getPetrolPrice, getProvinces, getFuels
-from stocks import getStockPrice
 import git  # GitPython library
 import os
 
@@ -31,7 +27,7 @@ def home():
             </script>
         </head>
         <body>
-            <h1>Hello, Flask! Update 1, update3</h1>
+            <h1>Hello, Flask! Update123333/h1>
             <button onclick="showMessage()">Click Me</button>
             <p id="content"></p>
         </body>
