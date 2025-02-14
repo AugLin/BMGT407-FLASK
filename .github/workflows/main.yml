@@ -13,9 +13,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Run PowerShell script to install dependencies
+        shell: pwsh
         run: |
+          Set-ExecutionPolicy Unrestricted -Scope Process -Force
           pip install -r requirements.txt
+
 
       - name: Deploy to School Server
         env:
