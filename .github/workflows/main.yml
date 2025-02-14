@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, windows]  # Adjust 'windows' or use your self-hosted runner label
+    runs-on: Linux  # Adjust 'windows' or use your self-hosted runner label
 
     steps:
       - name: Checkout code
