@@ -17,7 +17,9 @@ jobs:
         shell: powershell
         run: |
           Set-ExecutionPolicy Unrestricted -Scope Process -Force
+          $ExecutionContext.InvokeCommand.ExpandString("Set-ExecutionPolicy Unrestricted -Scope Process -Force")
           pip install -r requirements.txt
+
 
 
 
