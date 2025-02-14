@@ -11,11 +11,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Full Python and Pip
+      - name: Install Python from Source
         run: |
           sudo apt update
-          sudo apt install -y python3-full python3-pip python3-venv
-          python3 -m pip install --upgrade pip
+          sudo apt install -y build-essential zlib1g-dev \
+            libncurses5-dev libgdbm-dev libnss3-dev \
+            libssl-dev libreadline-dev libffi-dev curl
+          curl -O https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tgz
+          tar -xf Python-3.12.2.tgz
+          cd Python-3.12.2
+          ./configure --enable-optimizations
+          make -j $(nproc)
+          sudo make altinstall
+          python3.12 -m ensurepip
+          python3.12 -m pip install --upgrade pip
+
+      - name: Verify Python Installation
+        run: |
+          python3.12 --version
+          python3.12 -m pip --version
 
 
       - name: Install dependencies
