@@ -1,8 +1,5 @@
 from flask import Flask, request, render_template, jsonify
-from flask.wrappers import Response
-from jinja2 import Undefined
 import git  # GitPython library
-import os
 
 app = Flask(__name__)
 
@@ -33,16 +30,3 @@ def home():
         </body>
     </html>
     """
-
-@app.route('/greet/<name>', methods=['GET'])
-def greet(name):
-    return jsonify({"message": f"Hello, {name}!"})
-
-@app.route('/add', methods=['POST'])
-def add():
-    data = request.get_json()
-    result = data.get("a", 0) + data.get("b", 0)
-    return jsonify({"result": result})
-
-if __name__ == '__main__':
-    app.run(debug=True)
