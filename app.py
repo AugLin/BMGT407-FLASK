@@ -23,7 +23,7 @@ def home():
             </script>
         </head>
         <body>
-            <h1>Hello, Flask! Update 1, update2</h1>
+            <h1>Hello, Flask! Update 1, update3</h1>
             <button onclick="showMessage()">Click Me</button>
             <p id="content"></p>
         </body>
