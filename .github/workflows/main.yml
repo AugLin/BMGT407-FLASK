@@ -5,7 +5,7 @@ on:
       - main  # Change this to match your main branch
 jobs:
   deploy:
-    runs-on: [ubuntu-latest, self-hosted]
+    runs-on: [self-hosted]  # Use the Windows self-hosted runner
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,16 +18,22 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
-          PROJECT_DIR: "/home/${{ secrets.SERVER_USER }}/public_html"
+          PROJECT_DIR: "C:\\Users\\$env:USER\\public_html"  # Adjust this path
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          # Transfer all files
-          scp -i private_key.pem -r . $SERVER_USER@$SERVER_IP:$PROJECT_DIR
-          # Restart Flask app (Modify based on your server setup)
-          ssh -i private_key.pem $SERVER_USER@$SERVER_IP << 'EOF'
-          cd $PROJECT_DIR
-          pkill -f "flask run" || true  # Stop existing Flask app
-          nohup flask run --host=0.0.0.0 --port=5000 > flask.log 2>&1 &
-          EOF
-          rm -f private_key.pem
+          # Save SSH private key
+          $privateKey = $env:SSH_PRIVATE_KEY
+          Set-Content -Path private_key.pem -Value $privateKey -Force
+          # Set file permissions (in PowerShell this can be done through NTFS ACL)
+          icacls private_key.pem /grant:r "${env:USER}:(R)"
+          
+          # Use WinSCP for file transfer (Download and configure WinSCP on your runner)
+          & "C:\Program Files (x86)\WinSCP\WinSCP.exe" /command `
+            "open sftp://$env:SERVER_USER@$env:SERVER_IP/ -privatekey=private_key.pem" `
+            "put -r * $env:PROJECT_DIR" `
+            "exit"
+          
+          # Restart Flask app using SSH (ensure OpenSSH is installed on Windows)
+          ssh -i private_key.pem $env:SERVER_USER@$env:SERVER_IP "cd $env:PROJECT_DIR; pkill -f 'flask run' || true; nohup flask run --host=0.0.0.0 --port=5000 > flask.log 2>&1 &"
+          
+          # Clean up the private key file
+          Remove-Item private_key.pem
