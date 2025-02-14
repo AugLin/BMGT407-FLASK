@@ -11,34 +11,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Python from Source
-        run: |
-          sudo apt update
-          sudo apt install -y build-essential zlib1g-dev \
-            libncurses5-dev libgdbm-dev libnss3-dev \
-            libssl-dev libreadline-dev libffi-dev curl
-          curl -O https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tgz
-          tar -xf Python-3.12.2.tgz
-          cd Python-3.12.2
-          ./configure --enable-optimizations
-          make -j $(nproc)
-          sudo make altinstall
-          python3.12 -m ensurepip
-          python3.12 -m pip install --upgrade pip
-
       - name: Verify Python Installation
         run: |
-          python3.12 --version
-          python3.12 -m pip --version
+          python3 --version
+          python3 -m pip --version
 
-
-      - name: Create and Activate Virtual Environment
+      - name: Install dependencies in Virtual Environment
         run: |
           python3 -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
+          venv/bin/pip install --upgrade pip
+          venv/bin/pip install -r requirements.txt
 
       - name: Deploy to School Server
         env:
@@ -58,7 +40,7 @@ jobs:
           ssh -i private_key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << EOF
             cd $PROJECT_DIR
             pkill -f 'flask run' || true
-            nohup flask run --host=0.0.0.0 --port=5000 > flask.log 2>&1 &
+            nohup venv/bin/python -m flask run --host=0.0.0.0 --port=5000 > flask.log 2>&1 &
           EOF
 
           # Clean up the private key file
