@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 @app.route('/git_update', methods=['POST'])
 def git_update():
-    repo = git.Repo('./orbe')
+    repo = git.Repo('./lcaifu')
     origin = repo.remotes.origin
     repo.create_head('main',
                      origin.refs.main).set_tracking_branch(origin.refs.main).checkout()
@@ -23,7 +23,7 @@ def home():
             </script>
         </head>
         <body>
-            <h1>Hello, Flask! Update 1</h1>
+            <h1>Hello, Flask! Update 1, update2</h1>
             <button onclick="showMessage()">Click Me</button>
             <p id="content"></p>
         </body>
