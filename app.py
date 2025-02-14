@@ -1,4 +1,12 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request, render_template, jsonify
+from flask.wrappers import Response
+from jinja2 import Undefined
+from py.prime import makePrime
+from galton import galtonboard
+from petrol import getPetrolPrice, getProvinces, getFuels
+from stocks import getStockPrice
+import git  # GitPython library
+import os
 
 app = Flask(__name__)
 
