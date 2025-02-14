@@ -3,37 +3,39 @@ on:
   push:
     branches:
       - main  # Change this to match your main branch
+
 jobs:
   deploy:
-    runs-on: [Linux]  # Use the Windows self-hosted runner
+    runs-on: lcaifu  # Change to Linux runner
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
       - name: Deploy to School Server
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
-          PROJECT_DIR: "C:\\Users\\$env:USER\\public_html"  # Adjust this path
+          PROJECT_DIR: "/home/${{ secrets.SERVER_USER }}/public_html"  # Adjust path for Linux
         run: |
           # Save SSH private key
-          $privateKey = $env:SSH_PRIVATE_KEY
-          Set-Content -Path private_key.pem -Value $privateKey -Force
-          # Set file permissions (in PowerShell this can be done through NTFS ACL)
-          icacls private_key.pem /grant:r "${env:USER}:(R)"
-          
-          # Use WinSCP for file transfer (Download and configure WinSCP on your runner)
-          & "C:\Program Files (x86)\WinSCP\WinSCP.exe" /command `
-            "open sftp://$env:SERVER_USER@$env:SERVER_IP/ -privatekey=private_key.pem" `
-            "put -r * $env:PROJECT_DIR" `
-            "exit"
-          
-          # Restart Flask app using SSH (ensure OpenSSH is installed on Windows)
-          ssh -i private_key.pem $env:SERVER_USER@$env:SERVER_IP "cd $env:PROJECT_DIR; pkill -f 'flask run' || true; nohup flask run --host=0.0.0.0 --port=5000 > flask.log 2>&1 &"
-          
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          # Deploy using rsync over SSH
+          rsync -avz --delete -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" . $SERVER_USER@$SERVER_IP:$PROJECT_DIR
+
+          # Restart Flask app
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << EOF
+            cd $PROJECT_DIR
+            pkill -f 'flask run' || true
+            nohup flask run --host=0.0.0.0 --port=5000 > flask.log 2>&1 &
+          EOF
+
           # Clean up the private key file
-          Remove-Item private_key.pem
+          rm -f private_key.pem
