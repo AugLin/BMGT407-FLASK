@@ -7,21 +7,32 @@ on:
 
 jobs:
   deploy:
-    runs-on: windows  # Adjust 'windows' or use your self-hosted runner label
+    runs-on: [self-hosted, windows]  # Use your self-hosted runner on Windows
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set Execution Policy
+        shell: powershell
         run: |
           # Temporarily set the execution policy to allow script execution
-          powershell -Command "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force"
+          Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-      - name: Install dependencies (Windows)
+      - name: Ensure Python is installed
+        shell: powershell
         run: |
-          # Ensure Python is installed and display its version
+          # Check if Python is installed and display its version
           python --version
+          if (-not $?) {
+              Write-Error "Python is not installed or not in PATH"
+              exit 1
+          }
+
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          # Upgrade pip and install dependencies
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
@@ -31,12 +42,13 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           PROJECT_DIR: "/home/${{ secrets.SERVER_USER }}/public_html"
+        shell: powershell
         run: |
           # Save SSH private key to a file
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          echo "$env:SSH_PRIVATE_KEY" > private_key.pem
           # Set proper permissions for the key
           icacls private_key.pem /grant Everyone:F
           # Transfer files to the server using SCP
-          scp -i private_key.pem -r . $SERVER_USER@$SERVER_IP:$PROJECT_DIR
+          scp -i private_key.pem -r . "$env:SERVER_USER@$env:SERVER_IP:$env:PROJECT_DIR"
           # Clean up by removing the private key file
-          del private_key.pem
+          Remove-Item -Force private_key.pem
