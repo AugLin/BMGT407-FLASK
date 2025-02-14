@@ -14,7 +14,7 @@ def home():
             </script>
         </head>
         <body>
-            <h1>Hello, Flask! Update123333/h1>
+            <h1>Hello, Flask! /h1>
             <button onclick="showMessage()">Click Me</button>
             <p id="content"></p>
         </body>
