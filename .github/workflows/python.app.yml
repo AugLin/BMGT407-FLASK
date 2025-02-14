@@ -35,3 +35,14 @@ jobs:
       run: |
         # Use PythonAnywhere's API to reload the web app
         curl -X POST -u "$PA_USERNAME:$PA_TOKEN" https://www.pythonanywhere.com/api/v0/user/$PA_USERNAME/webapps/$PA_APP_NAME/reload/
+
+    - name: Debug API Request
+      env:
+        PA_USERNAME: ${{ secrets.PA_USERNAME }}
+        PA_TOKEN: ${{ secrets.PA_TOKEN }}
+        PA_APP_NAME: ${{ secrets.PA_APP_NAME }}
+      run: |
+        echo "PA_USERNAME: $PA_USERNAME"
+        echo "PA_APP_NAME: $PA_APP_NAME"
+        response=$(curl -v -X POST -u "$PA_USERNAME:$PA_TOKEN" https://www.pythonanywhere.com/api/v0/user/$PA_USERNAME/webapps/$PA_APP_NAME/reload/)
+        echo "API Response: $response"
