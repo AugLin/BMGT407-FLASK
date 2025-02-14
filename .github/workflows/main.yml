@@ -1,48 +1,33 @@
 name: CI/CD Pipeline for Flask
-
 on:
   push:
     branches:
       - main  # Change this to match your main branch
-
 jobs:
   deploy:
-    runs-on: [self-hosted, windows]  # Use your self-hosted runner on Windows
-
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Ensure Python is installed
-        shell: powershell
-        run: |
-          # Check if Python is installed and display its version
-          python --version
-          if (-not $?) {
-              Write-Error "Python is not installed or not in PATH"
-              exit 1
-          }
-
       - name: Install dependencies
-        shell: powershell
         run: |
-          # Upgrade pip and install dependencies
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
       - name: Deploy to School Server
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           PROJECT_DIR: "/home/${{ secrets.SERVER_USER }}/public_html"
-        shell: powershell
         run: |
-          # Save SSH private key to a file
-          echo "$env:SSH_PRIVATE_KEY" > private_key.pem
-          # Set proper permissions for the key
-          icacls private_key.pem /grant Everyone:F
-          # Transfer files to the server using SCP
-          scp -i private_key.pem -r . "$env:SERVER_USER@$env:SERVER_IP:$env:PROJECT_DIR"
-          # Clean up by removing the private key file
-          Remove-Item -Force private_key.pem
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+          # Transfer all files
+          scp -i private_key.pem -r . $SERVER_USER@$SERVER_IP:$PROJECT_DIR
+          # Restart Flask app (Modify based on your server setup)
+          ssh -i private_key.pem $SERVER_USER@$SERVER_IP << 'EOF'
+          cd $PROJECT_DIR
+          pkill -f "flask run" || true  # Stop existing Flask app
+          nohup flask run --host=0.0.0.0 --port=5000 > flask.log 2>&1 &
+          EOF
+          rm -f private_key.pem
