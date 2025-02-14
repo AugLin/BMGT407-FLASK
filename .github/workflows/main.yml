@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: lcaifu  # Change to Linux runner
+    runs-on: Linux  # Change to Linux runner
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
