@@ -7,7 +7,13 @@ on:
 jobs:
   deploy:
     runs-on: Linux  # Change to Linux runner
+    
     steps:
+      - name: Fix File Permissions
+        run: |
+          sudo chown -R $(whoami):$(whoami) /home/lcaifu/actions-runner/_work
+          sudo chmod -R u+rw /home/lcaifu/actions-runner/_work
+
       - name: Checkout code
         uses: actions/checkout@v3
 
