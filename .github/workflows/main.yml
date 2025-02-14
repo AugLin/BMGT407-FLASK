@@ -13,6 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set Execution Policy
+        run: |
+          # Temporarily set the execution policy to allow script execution
+          powershell -Command "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force"
+
       - name: Install dependencies (Windows)
         run: |
           # Ensure Python is installed and display its version
